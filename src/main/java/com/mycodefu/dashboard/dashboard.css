@@ -19,3 +19,7 @@
 #headerHBox {
     -fx-alignment: center;
 }
+
+#lightMovesBox {
+    -fx-pref-height: 100;
+}

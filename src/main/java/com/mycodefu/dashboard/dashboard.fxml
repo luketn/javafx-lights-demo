@@ -12,7 +12,12 @@
                 </HBox>
             </top>
             <center>
+                <VBox>
                 <FlowPane fx:id="lightsBox" />
+                <Pane fx:id="lightMovesBox" AnchorPane.rightAnchor="0.0" AnchorPane.leftAnchor="0.0">
+
+                </Pane>
+                </VBox>
             </center>
             <bottom>
                 <VBox>
