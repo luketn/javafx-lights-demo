@@ -1,0 +1,406 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.mycodefu</groupId>
+    <artifactId>javafx-template</artifactId>
+    <version>1</version>
+    <packaging>jar</packaging>
+    <name>javafx-template</name>
+    <url>https://mycodefu.com</url>
+
+    <properties>
+        <java.version>15</java.version>
+        <javafx.version>15</javafx.version>
+        <controlsfx.version>11.0.2</controlsfx.version>
+
+        <main.class>com.mycodefu.App</main.class>
+
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <test-argline>
+            --add-exports javafx.base/com.sun.javafx.event=org.controlsfx.controls
+            --add-exports javafx.graphics/com.sun.javafx.application=ALL-UNNAMED
+            --add-exports javafx.graphics/com.sun.glass.ui=ALL-UNNAMED
+            --add-opens java.base/java.lang=ALL-UNNAMED
+            --enable-preview
+        </test-argline>
+
+        <jpackage-modules>javafx.controls,javafx.fxml</jpackage-modules>
+        <jpackage-copyright>2020 Luke Thompson</jpackage-copyright>
+        <jpackage-vendor>Luke Thompson</jpackage-vendor>
+        <jpackage-app-version>${env.DEPLOY_TAG}</jpackage-app-version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-swing</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.controlsfx</groupId>
+            <artifactId>controlsfx</artifactId>
+            <version>${controlsfx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.inject</groupId>
+            <artifactId>javax.inject</artifactId>
+            <version>1</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+            <version>1.3.2</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- Tests -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.5.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.5.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+            <version>5.5.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest</artifactId>
+            <version>2.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>1.10.19</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testfx</groupId>
+            <artifactId>testfx-junit5</artifactId>
+            <version>4.0.16-alpha</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testfx</groupId>
+            <artifactId>openjfx-monocle</artifactId>
+            <version>jdk-12.0.1+2</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>javafx-template</finalName>
+        <defaultGoal>clean package</defaultGoal>
+        <plugins>
+            <plugin>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <version>0.0.4</version>
+                <configuration>
+                    <mainClass>${main.class}</mainClass>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <outputDirectory>${project.build.directory}/release-directory</outputDirectory>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>lib/</classpathPrefix>
+                            <mainClass>${main.class}</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <includeScope>runtime</includeScope>
+                            <outputDirectory>${project.build.directory}/release-directory/lib</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/release-directory</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/script</directory>
+                                    <includes>
+                                        <include>run.sh</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <release>${java.version}</release>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <compilerArgs>--enable-preview</compilerArgs>
+                </configuration>
+            </plugin>
+        </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/java</directory>
+                <includes>
+                    <include>**/*.fxml</include>
+                    <include>**/*.css</include>
+                    <include>**/*.properties</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>**/*</include>
+                </includes>
+            </resource>
+        </resources>
+        <testResources>
+            <testResource>
+                <directory>src/test/java</directory>
+                <includes>
+                    <include>**/*.fxml</include>
+                    <include>**/*.css</include>
+                    <include>**/*.properties</include>
+                </includes>
+            </testResource>
+            <testResource>
+                <directory>src/test/resources</directory>
+                <includes>
+                    <include>**/*</include>
+                </includes>
+            </testResource>
+        </testResources>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>mac</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                </os>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>3.0.0-M5</version>
+                        <configuration>
+                            <argLine>${test-argline}</argLine>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>1.7</version>
+                        <executions>
+                            <execution>
+                                <id>jpackage</id>
+                                <phase>install</phase>
+                                <configuration>
+                                    <target>
+                                        <exec executable="jpackage" failonerror="true">
+                                            <arg line="--type pkg"/>
+                                            <arg line="--dest ./target/installer"/>
+                                            <arg line="--input ./target/release-directory"/>
+                                            <arg line="--main-jar &quot;${project.build.finalName}.jar&quot;"/>
+                                            <arg line="--module-path ./target/release-directory/lib"/>
+                                            <arg line="--add-modules ${jpackage-modules}"/>
+                                            <arg line="--java-options &quot;--enable-preview&quot;"/>
+                                            <arg line="--icon ./assets/app.icns"/>
+                                            <arg line="--name &quot;${project.build.finalName}&quot;"/>
+                                            <arg line="--app-version &quot;${jpackage-app-version}&quot;"/>
+                                            <arg line="--copyright &quot;${jpackage-copyright}&quot;"/>
+                                            <arg line="--vendor &quot;${jpackage-vendor}&quot;"/>
+                                            <arg line="--verbose"/>
+                                        </exec>
+                                    </target>
+                                </configuration>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>unix</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                    <name>Linux</name>
+                </os>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>3.0.0-M5</version>
+                        <configuration>
+                            <argLine>
+                                ${test-argline}
+                                -Dglass.platform=Monocle
+                                -Dmonocle.platform=Headless
+                                -Dprism.order=sw
+                                -Dprism.fontdir=/usr/share/fonts
+                            </argLine>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>1.7</version>
+                        <executions>
+                            <execution>
+                                <id>jpackage</id>
+                                <phase>install</phase>
+                                <configuration>
+                                    <target>
+                                        <exec executable="jpackage" failonerror="true">
+                                            <arg line="--type deb"/>
+                                            <arg line="--input ./target/release-directory"/>
+                                            <arg line="--main-jar &quot;${project.build.finalName}.jar&quot;"/>
+                                            <arg line="--dest ./target/installer"/>
+                                            <arg line="--module-path ./target/release-directory/lib"/>
+                                            <arg line="--add-modules ${jpackage-modules}"/>
+                                            <arg line="--java-options &quot;--enable-preview&quot;"/>
+                                            <arg line="--icon ./assets/app.ico"/>
+                                            <arg line="--name &quot;${project.build.finalName}&quot;"/>
+                                            <arg line="--app-version &quot;${jpackage-app-version}&quot;"/>
+                                            <arg line="--copyright &quot;${jpackage-copyright}&quot;"/>
+                                            <arg line="--vendor &quot;${jpackage-vendor}&quot;"/>
+                                            <arg line="--verbose"/>
+                                        </exec>
+                                    </target>
+                                </configuration>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>windows</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>3.0.0-M5</version>
+                        <configuration>
+                            <argLine>${test-argline}</argLine>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>1.7</version>
+                        <executions>
+                            <execution>
+                                <id>jpackage</id>
+                                <phase>install</phase>
+                                <configuration>
+                                    <target>
+                                        <exec executable="jpackage" failonerror="true">
+                                            <arg line="--type msi"/>
+                                            <arg line="--dest ./target/installer"/>
+                                            <arg line="--input ./target/release-directory"/>
+                                            <arg line="--main-jar &quot;${project.build.finalName}.jar&quot;"/>
+                                            <arg line="--module-path ./target/release-directory/lib"/>
+                                            <arg line="--add-modules ${jpackage-modules}"/>
+                                            <arg line="--java-options &quot;--enable-preview&quot;"/>
+                                            <arg line="--icon ./assets/app.ico"/>
+                                            <arg line="--name &quot;${project.build.finalName}&quot;"/>
+                                            <arg line="--app-version &quot;${jpackage-app-version}&quot;"/>
+                                            <arg line="--copyright &quot;${jpackage-copyright}&quot;"/>
+                                            <arg line="--vendor &quot;${jpackage-vendor}&quot;"/>
+                                            <arg line="--verbose"/>
+                                        </exec>
+                                    </target>
+                                </configuration>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>Default value CI Build Number</id>
+            <activation>
+                <property>
+                    <name>!env.DEPLOY_TAG</name>
+                </property>
+            </activation>
+            <properties>
+                <env.DEPLOY_TAG>1.0.0</env.DEPLOY_TAG>
+            </properties>
+        </profile>
+    </profiles>
+</project>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+
+<AnchorPane fx:id="root" xmlns:fx="http://javafx.com/fxml" fx:controller="com.mycodefu.dashboard.DashboardPresenter">
+    <children>
+        <BorderPane AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.bottomAnchor="0.0">
+            <top>
+                <HBox fx:id="headerHBox">
+                    <Label fx:id="headerLabel" text="%heading"/>
+                </HBox>
+            </top>
+            <center>
+                <FlowPane fx:id="lightsBox" />
+            </center>
+            <bottom>
+                <VBox>
+                    <Label fx:id="message" styleClass="boxSpacing"/>
+                    <Label text="%welcome" styleClass="boxSpacing"/>
+                    <HBox styleClass="boxSpacing">
+                        <Button fx:id="launch" onAction="#launch" text="%launch" defaultButton="true" />
+                        <Button fx:id="createLights" onAction="#createLights" text="%create" />
+                    </HBox>
+                </VBox>
+            </bottom>
+        </BorderPane>
+    </children>
+</AnchorPane>

@@ -1,0 +1,310 @@
+version: 2.1
+
+orbs:
+  windows: circleci/windows@2.4.0
+
+jobs:
+  build:
+    docker:
+      - image: cimg/openjdk:15.0.0
+
+    steps:
+      - checkout
+
+      - run: |
+          sudo apt-get update
+          echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | sudo debconf-set-selections
+          sudo apt-get install ubuntu-restricted-extras ttf-mscorefonts-installer
+
+      - run: mvn package
+
+      - store_test_results:
+          path: target/surefire-reports
+
+      - store_artifacts:
+          path: target/test-screenshots
+          destination: test-screenshots
+
+      - run: |
+          echo "$(git tag -l --points-at HEAD)" > ~/deploy_tag.txt
+
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - deploy_tag.txt
+
+  build-linux-installer:
+    environment:
+      CORRETTO_VERSION: 15
+      MAVEN_VERSION: 3.6.3
+
+    docker:
+      - image: cimg/base:stable
+
+    shell: /bin/bash --login -eo pipefail
+
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+
+      - checkout
+
+      - run:
+          name: Setup Fonts
+          command: |
+            sudo apt-get update
+            echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | sudo debconf-set-selections
+            sudo apt-get install ubuntu-restricted-extras ttf-mscorefonts-installer
+
+      - run:
+          name: Install Corretto JDK
+          command: |
+            wget "https://corretto.aws/downloads/latest/amazon-corretto-${CORRETTO_VERSION}-x64-linux-jdk.tar.gz"
+            tar -xvf "amazon-corretto-${CORRETTO_VERSION}-x64-linux-jdk.tar.gz"
+            cd "$(find ./ -type d -name "amazon-corretto-${CORRETTO_VERSION}*" | head -n 1)"
+
+            export JAVA_HOME="$(pwd)"
+            echo "export JAVA_HOME=${JAVA_HOME}" >> ~/.bash_profile
+            echo "export PATH=$JAVA_HOME/bin:$PATH" >> ~/.bash_profile
+
+      - run:
+          name: Install Maven
+          command: |
+            wget "https://apache.mirror.digitalpacific.com.au/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz"
+            tar -xvf "apache-maven-${MAVEN_VERSION}-bin.tar.gz"
+
+            export MAVEN_HOME="$(pwd)/apache-maven-${MAVEN_VERSION}"
+            echo "export MAVEN_HOME=${MAVEN_HOME}" >> ~/.bash_profile
+            echo "export M2_HOME=${MAVEN_HOME}" >> ~/.bash_profile
+            echo "export PATH=${MAVEN_HOME}/bin:$PATH" >> ~/.bash_profile
+
+      - run:
+          name: Maven Install Build
+          command: |
+            export DEPLOY_TAG="$(cat /tmp/workspace/deploy_tag.txt)"
+            java -version
+            mvn -version
+
+            mvn install
+
+      - store_test_results:
+          path: target/surefire-reports
+
+      - store_artifacts:
+          path: target/test-screenshots
+          destination: test-screenshots
+
+      - store_artifacts:
+          path: target/installer
+          destination: installer
+
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/target/installer
+
+  build-mac-installer:
+    environment:
+      CORRETTO_VERSION: 15
+      MAVEN_VERSION: 3.6.3
+
+    macos:
+      xcode: 12.0.0
+
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+
+      - checkout
+
+      - run:
+          name: Install Homebrew Dependencies
+          command: HOMEBREW_NO_AUTO_UPDATE=1 brew install wget
+
+      - run:
+          name: Install Corretto JDK
+          command: |
+            wget "https://corretto.aws/downloads/latest/amazon-corretto-${CORRETTO_VERSION}-x64-macos-jdk.tar.gz"
+            tar -xvf "amazon-corretto-${CORRETTO_VERSION}-x64-macos-jdk.tar.gz"
+
+            export JAVA_HOME="$(pwd)/amazon-corretto-${CORRETTO_VERSION}.jdk/Contents/Home"
+            echo "export JAVA_HOME=${JAVA_HOME}" >> ~/.bash_profile
+            echo "export PATH=$JAVA_HOME/bin:$PATH" >> ~/.bash_profile
+
+      - run:
+          name: Install Maven
+          command: |
+            wget "https://apache.mirror.digitalpacific.com.au/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz"
+            tar -xvf "apache-maven-${MAVEN_VERSION}-bin.tar.gz"
+
+            export MAVEN_HOME="$(pwd)/apache-maven-${MAVEN_VERSION}"
+            echo "export MAVEN_HOME=${MAVEN_HOME}" >> ~/.bash_profile
+            echo "export M2_HOME=${MAVEN_HOME}" >> ~/.bash_profile
+            echo "export PATH=${MAVEN_HOME}/bin:$PATH" >> ~/.bash_profile
+
+      - run:
+          name: Maven Install Build
+          command: |
+            export DEPLOY_TAG="$(cat /tmp/workspace/deploy_tag.txt)"
+            java -version
+            mvn -version
+
+            mvn install
+
+      - store_test_results:
+          path: target/surefire-reports
+
+      - store_artifacts:
+          path: target/test-screenshots
+          destination: test-screenshots
+
+      - store_artifacts:
+          path: target/installer
+          destination: installer
+
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/target/installer
+
+  build-windows-installer:
+    executor:
+      name: windows/default
+      shell: powershell.exe
+
+    steps:
+      - attach_workspace:
+          at: c:\workspace
+
+      - checkout
+
+      - run:
+          name: Install WIX
+          command: |
+            nuget install WiX.Toolset -Version 3.9.1208.0
+            $wix_home = "c:\Users\circleci\project\Wix.Toolset.3.9.1208.0\tools\wix"
+
+            $old_path = [System.Environment]::GetEnvironmentVariable('PATH','Machine')
+            $new_path = "$wix_home;$old_path"
+            [Environment]::SetEnvironmentVariable("PATH", "$new_path", "Machine")
+
+            [System.Environment]::GetEnvironmentVariable('PATH','Machine')
+
+      - run:
+          name: Install Corretto JDK
+          command: |
+            $CORRETTO_VERSION = "15"
+
+            $ProgressPreference = "SilentlyContinue"
+            Invoke-WebRequest -Uri "https://corretto.aws/downloads/latest/amazon-corretto-$CORRETTO_VERSION-x64-windows-jdk.zip" -OutFile "amazon-corretto-$CORRETTO_VERSION-x64-windows-jdk.zip"
+            Expand-Archive ".\amazon-corretto-$CORRETTO_VERSION-x64-windows-jdk.zip"
+
+            $java_home = "$pwd\amazon-corretto-$CORRETTO_VERSION-x64-windows-jdk"
+            $old_path = [System.Environment]::GetEnvironmentVariable('PATH','Machine')
+            $new_path = "$java_home\bin;$old_path"
+            [Environment]::SetEnvironmentVariable("PATH", "$new_path", "Machine")
+            [Environment]::SetEnvironmentVariable("JAVA_HOME", "$java_home", "Machine")
+
+            [System.Environment]::GetEnvironmentVariable('PATH','Machine')
+
+      - run:
+          name: Install Maven
+          command: |
+            $MAVEN_VERSION = "3.6.3"
+
+            $ProgressPreference = "SilentlyContinue"
+            Invoke-WebRequest -Uri "https://apache.mirror.digitalpacific.com.au/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.zip" -OutFile "apache-maven-${MAVEN_VERSION}-bin.zip"
+            Expand-Archive ".\apache-maven-${MAVEN_VERSION}-bin.zip"
+
+            $maven_home = "$pwd\apache-maven-${MAVEN_VERSION}-bin\apache-maven-${MAVEN_VERSION}"
+            $old_path = [System.Environment]::GetEnvironmentVariable('PATH','Machine')
+            $new_path = "$maven_home\bin;$old_path"
+            [Environment]::SetEnvironmentVariable("PATH", "$new_path", "Machine")
+            [Environment]::SetEnvironmentVariable("MAVEN_HOME", "$maven_home", "Machine")
+            [Environment]::SetEnvironmentVariable("M2_HOME", "$maven_home", "Machine")
+
+            [System.Environment]::GetEnvironmentVariable('PATH','Machine')
+
+      - run:
+          name: Maven Install Build
+          command: |
+            $env:DEPLOY_TAG = Get-Content c:\workspace\deploy_tag.txt
+            java -version
+            mvn -version
+
+            mvn install -DskipTests
+
+      - store_test_results:
+          path: target/surefire-reports
+
+      - store_artifacts:
+          path: target/test-screenshots
+          destination: test-screenshots
+
+      - store_artifacts:
+          path: target/installer
+          destination: installer
+
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - project/target/installer
+
+  publish-github-release:
+    docker:
+      - image: cibuilds/github:0.13
+    steps:
+      - attach_workspace:
+          at: ./artifacts
+      - run:
+          name: "Publish Release on GitHub"
+          command: |
+            DEPLOY_TAG="$(cat ./artifacts/deploy_tag.txt)"
+            rm -f ./artifacts/deploy_tag.txt
+            rm -f /root/project/artifacts/project/target/installer/._*
+            echo "DEPLOY_TAG=${DEPLOY_TAG}"
+
+            ghr -t "${GITHUB_TOKEN}" \
+                -u "${CIRCLE_PROJECT_USERNAME}" \
+                -r "${CIRCLE_PROJECT_REPONAME}" \
+                -c "${CIRCLE_SHA1}" \
+                -replace \
+                "${DEPLOY_TAG}" \
+                "/root/project/artifacts/project/target/installer/"
+
+
+release-filter: &release-filter
+  filters:
+    # ignore any commit on any branch by default
+    branches:
+      ignore: /.*/
+    # only act on version tags
+    tags:
+      only: /^\d+\.\d+\.\d+$/
+
+workflows:
+  build:
+    jobs:
+      - build:
+          filters:
+            tags:
+              only: /.*/
+      - build-linux-installer:
+          <<: *release-filter
+          requires:
+            - build
+#      - build-windows-installer:
+#          <<: *release-filter
+#          requires:
+#            - build
+      - build-mac-installer:
+          <<: *release-filter
+          requires:
+            - build
+      - publish-github-release:
+          <<: *release-filter
+          requires:
+#            - build-windows-installer
+            - build-mac-installer
+            - build-linux-installer
+

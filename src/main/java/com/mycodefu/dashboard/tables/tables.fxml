@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.mycodefu.dashboard.tables.TableRowData?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.scene.control.cell.PropertyValueFactory?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import com.mycodefu.betterfxml.records.RecordValueFactory?>
+<?import com.mycodefu.betterfxml.records.RecordTableColumn?>
+<AnchorPane fx:id="root" xmlns:fx="http://javafx.com/fxml" fx:controller="com.mycodefu.dashboard.tables.TablesPresenter">
+    <children>
+        <SplitPane dividerPositions="0.7" focusTraversable="true"
+                   AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                   AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <items>
+                <AnchorPane>
+                    <children>
+                        <TableView fx:id="dataTable"
+                                   AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                                   AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" onKeyPressed="#keyPressed" onMouseClicked="#mouseClicked">
+                            <columns>
+                                <RecordTableColumn fx:id="name" text="Name" />
+                                <RecordTableColumn fx:id="description" text="Description" />
+                            </columns>
+                        </TableView>
+                    </children>
+                </AnchorPane>
+                <AnchorPane>
+                    <children>
+                        <VBox styleClass="boxSpacing">
+                            <children>
+                                <TextField fx:id="personTextField"/>
+                                <Button fx:id="addPerson" text="Add Person" onAction="#addPerson"/>
+                            </children>
+                        </VBox>
+                    </children>
+                </AnchorPane>
+            </items>
+        </SplitPane>
+    </children>
+</AnchorPane>

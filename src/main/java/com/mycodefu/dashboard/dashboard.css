@@ -1,0 +1,21 @@
+#root {
+    -fx-pref-width: 1024;
+    -fx-pref-height: 768;
+}
+#launch {
+    -fx-background-color: #a21bc1;
+}
+
+#lightsBox {
+    -fx-hgap: 1;
+    -fx-vgap: 1;
+    -fx-padding: 10 10 10 10;
+}
+
+#headerLabel {
+    -fx-font-size: 100px;
+}
+
+#headerHBox {
+    -fx-alignment: center;
+}

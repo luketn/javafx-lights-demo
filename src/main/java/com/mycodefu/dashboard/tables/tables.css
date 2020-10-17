@@ -1,0 +1,12 @@
+#root {
+    -fx-pref-width: 520;
+    -fx-pref-height: 320;
+}
+
+TableColumn #name {
+    -fx-pref-width: 160;
+}
+
+TableColumn #description {
+    -fx-pref-width: 150;
+}

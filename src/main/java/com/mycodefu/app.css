@@ -1,0 +1,21 @@
+/*
+This global stylesheet is applied to all screens in the app.
+Refer to this excellent CSS guide:
+https://openjfx.io/javadoc/15/javafx.graphics/javafx/scene/doc-files/cssref.html
+*/
+
+.boxSpacing{
+    -fx-padding: 10 10 10 10;
+    -fx-spacing: 10;
+}
+
+.root {    
+    -fx-font: 14px "Verdana";
+    -fx-background-color: #1a1616;
+}
+
+Button {
+    -fx-background-color: darkslateblue;
+    -fx-text-fill: white;
+    -fx-pref-height: 30;
+}
